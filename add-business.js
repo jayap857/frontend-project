@@ -1,182 +1,86 @@
-// Add Business page JavaScript functionality
+// API Base URL
+const API_BASE_URL = "http://localhost:5000/api";
 
-document.addEventListener('DOMContentLoaded', function() {
-  setupForm();
-  populateCategories();
+// Populate categories from API
+fetch(`${API_BASE_URL}/categories/`)
+  .then(res => res.json())
+  .then(data => {
+    const select = document.getElementById("category");
+    select.innerHTML = '<option value="">Select Category</option>';
+    data.forEach(cat => {
+      const option = document.createElement("option");
+      option.value = cat.id;
+      option.textContent = cat.name;
+      select.appendChild(option);
+    });
+  })
+  .catch(err => {
+    console.error("Failed to load categories:", err);
+    document.getElementById("category").innerHTML = '<option value="">Failed to load</option>';
+  });
+
+// Generate Opening Hours inputs
+const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const container = document.getElementById("openingHours");
+
+days.forEach(day => {
+  const div = document.createElement("div");
+  div.classList.add("mb-3");
+  div.innerHTML = `
+    <label class="form-label fw-semibold">${day}</label>
+    <div class="d-flex gap-2">
+      <input type="time" class="form-control" id="${day.toLowerCase()}_open">
+      <input type="time" class="form-control" id="${day.toLowerCase()}_close">
+    </div>
+  `;
+  container.appendChild(div);
 });
 
-function setupForm() {
-  const form = document.getElementById('addBusinessForm');
-  
-  // Add form validation
-  form.addEventListener('submit', function(event) {
-      event.preventDefault();
-      event.stopPropagation();
+// Handle form submission
+document.getElementById("businessForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-      if (form.checkValidity()) {
-          submitBusiness();
-      } else {
-          form.classList.add('was-validated');
-      }
-  });
-
-  // Remove validation class on input
-  form.addEventListener('input', function() {
-      if (form.classList.contains('was-validated')) {
-          form.classList.remove('was-validated');
-      }
-  });
-}
-
-function populateCategories() {
-  const categorySelect = document.getElementById('businessCategory');
-  categorySelect.innerHTML = '<option value="">Select Category</option>' +
-      categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
-}
-
-function submitBusiness() {
-  const formData = collectFormData();
-  
-  if (!formData) {
-      return;
-  }
-
-  // Get existing businesses from localStorage
-  const existingBusinesses = getFromLocalStorage('businesses') || [];
-  
-  // Create new business object
-  const newBusiness = {
-      id: Date.now(), // Simple ID generation
-      name: formData.name,
-      category: categories.find(cat => cat.id === parseInt(formData.categoryId)).name,
-      categoryId: parseInt(formData.categoryId),
-      description: formData.description,
-      phone: formData.phone,
-      email: formData.email,
-      website: formData.website,
-      address: formData.address,
-      city: formData.city,
-      area: formData.area,
-      rating: 0,
-      reviewCount: 0,
-      featured: false,
-      hours: {
-          open: formData.openTime || '09:00',
-          close: formData.closeTime || '18:00',
-          days: formData.operatingDays
-      },
-      services: formData.services ? formData.services.split(',').map(s => s.trim()) : [],
-      image: getRandomBusinessImage(),
-      socialMedia: {
-          facebook: formData.facebook,
-          instagram: formData.instagram
-      }
+  // Collect form data
+  const businessData = {
+    name: document.getElementById("name").value,
+    description: document.getElementById("description").value,
+    category: document.getElementById("category").value,
+    address: document.getElementById("address").value,
+    phone_number: document.getElementById("phone").value,
+    email: document.getElementById("email").value,
+    website: document.getElementById("website").value,
+    opening_hours: {},
+    social_media: {
+      facebook: document.getElementById("facebook").value,
+      instagram: document.getElementById("instagram").value,
+    }
   };
 
-  // Add to businesses array
-  existingBusinesses.push(newBusiness);
-  
-  // Save to localStorage
-  if (saveToLocalStorage('businesses', existingBusinesses)) {
-      showSuccessModal();
-      resetForm();
-  } else {
-      alert('Error saving business. Please try again.');
-  }
-}
-
-function collectFormData() {
-  const operatingDays = [];
-  ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].forEach(day => {
-      if (document.getElementById(day).checked) {
-          operatingDays.push(day.charAt(0).toUpperCase() + day.slice(1));
-      }
+  // Add opening hours for each day
+  days.forEach(day => {
+    const open = document.getElementById(`${day.toLowerCase()}_open`).value || "closed";
+    const close = document.getElementById(`${day.toLowerCase()}_close`).value || "";
+    businessData.opening_hours[day.toLowerCase()] = open === "closed" ? "closed" : `${open}-${close}`;
   });
 
-  return {
-      name: document.getElementById('businessName').value.trim(),
-      categoryId: document.getElementById('businessCategory').value,
-      description: document.getElementById('businessDescription').value.trim(),
-      phone: document.getElementById('businessPhone').value.trim(),
-      email: document.getElementById('businessEmail').value.trim(),
-      website: document.getElementById('businessWebsite').value.trim(),
-      city: document.getElementById('businessCity').value,
-      area: document.getElementById('businessArea').value.trim(),
-      address: document.getElementById('businessAddress').value.trim(),
-      openTime: document.getElementById('openTime').value,
-      closeTime: document.getElementById('closeTime').value,
-      operatingDays: operatingDays,
-      services: document.getElementById('businessServices').value.trim(),
-      facebook: document.getElementById('businessFacebook').value.trim(),
-      instagram: document.getElementById('businessInstagram').value.trim()
-  };
-}
-
-function showSuccessModal() {
-  const modal = new bootstrap.Modal(document.getElementById('successModal'));
-  modal.show();
-  
-  // Redirect to home page after modal is hidden
-  document.getElementById('successModal').addEventListener('hidden.bs.modal', function() {
-      window.location.href = 'index.html';
-  });
-}
-
-function resetForm() {
-  const form = document.getElementById('addBusinessForm');
-  form.reset();
-  form.classList.remove('was-validated');
-}
-
-function getRandomBusinessImage() {
-  const businessImages = [
-      'https://images.pexels.com/photos/260922/pexels-photo-260922.jpeg',
-      'https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg',
-      'https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg',
-      'https://images.pexels.com/photos/263402/pexels-photo-263402.jpeg',
-      'https://images.pexels.com/photos/264507/pexels-photo-264507.jpeg',
-      'https://images.pexels.com/photos/289740/pexels-photo-289740.jpeg',
-      'https://images.pexels.com/photos/1319839/pexels-photo-1319839.jpeg'
-  ];
-  
-  return businessImages[Math.floor(Math.random() * businessImages.length)];
-}
-
-// Form validation helpers
-function validateEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
-function validatePhone(phone) {
-  const phoneRegex = /^[\+]?[977]?[\-\s]?[0-9]{8,10}$/;
-  return phoneRegex.test(phone.replace(/[\s\-]/g, ''));
-}
-
-function validateWebsite(url) {
   try {
-      new URL(url);
-      return true;
-  } catch {
-      return false;
-  }
-}
+    const res = await fetch(`${API_BASE_URL}/businesses/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(businessData)
+    });
 
-// Real-time validation
-document.getElementById('businessEmail').addEventListener('blur', function() {
-  const email = this.value.trim();
-  if (email && !validateEmail(email)) {
-      this.setCustomValidity('Please enter a valid email address');
-  } else {
-      this.setCustomValidity('');
-  }
-});
-
-document.getElementById('businessWebsite').addEventListener('blur', function() {
-  const website = this.value.trim();
-  if (website && !validateWebsite(website)) {
-      this.setCustomValidity('Please enter a valid website URL');
-  } else {
-      this.setCustomValidity('');
+    if (res.ok) {
+      alert("✅ Business added successfully!");
+      document.getElementById("businessForm").reset();
+    } else {
+      const errorData = await res.json();
+      alert("❌ Error: " + JSON.stringify(errorData));
+    }
+  } catch (error) {
+    console.error("Error submitting business:", error);
+    alert("❌ Something went wrong. Check console.");
   }
 });

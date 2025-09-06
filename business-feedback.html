@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Submit Review - Nepal Business Directory</title>
+<title>Business Feedback - Nepal Business Directory</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -35,37 +35,39 @@
   </div>
 </nav>
 
-<section class="py-5">
+<section class="py-5 mt-5">
   <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-lg-6">
+    <div class="row">
+      <!-- Feedback Summary -->
+      <div class="col-lg-4 mb-4">
         <div class="card shadow">
-          <div class="card-header bg-primary text-white">
-            <h4 class="mb-0"><i class="fas fa-star me-2"></i>Submit a Review</h4>
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Feedback Summary</h5>
           </div>
           <div class="card-body">
-            <form id="reviewForm">
-              <div class="mb-3">
-                <label for="businessId" class="form-label">Business ID</label>
-                <input type="number" class="form-control" id="businessId" placeholder="Enter business ID" required>
-              </div>
-              <div class="mb-3">
-                <label for="rating" class="form-label">Rating (1-5)</label>
-                <input type="number" class="form-control" id="rating" min="1" max="5" placeholder="Enter rating" required>
-              </div>
-              <div class="mb-3">
-                <label for="reviewText" class="form-label">Review Text</label>
-                <textarea class="form-control" id="reviewText" rows="4" placeholder="Write your review..." required></textarea>
-              </div>
-              <div class="mb-3">
-                <label for="visitDate" class="form-label">Visit Date</label>
-                <input type="date" class="form-control" id="visitDate" required>
-              </div>
-              <button type="submit" class="btn btn-primary w-100"><i class="fas fa-paper-plane me-2"></i>Submit Review</button>
-            </form>
+            <p><strong>Business:</strong> <span id="summaryBusiness">Loading...</span></p>
+            <p><strong>Total Feedbacks:</strong> <span id="totalFeedbacks">0</span></p>
+            <p><strong>Average Rating:</strong> <span id="avgRating">0</span></p>
+            <p><strong>Overall Sentiment:</strong> <span id="overallSentiment">0</span></p>
+            <h6>Sentiment Distribution</h6>
+            <ul class="list-group mb-3" id="sentimentDistribution"></ul>
+            <h6>Rating Distribution</h6>
+            <ul class="list-group" id="ratingDistribution"></ul>
+          </div>
+        </div>
+      </div>
 
-           
-
+      <!-- Feedback List -->
+      <div class="col-lg-8">
+        <div class="card shadow">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-star me-2"></i>Customer Feedbacks</h5>
+          </div>
+          <div class="card-body" id="feedbackContainer">
+            <!-- Feedbacks will be loaded here -->
+          </div>
+          <div class="card-footer text-center">
+            <button class="btn btn-outline-primary" id="loadMoreBtn">Load More Feedbacks</button>
           </div>
         </div>
       </div>
@@ -74,7 +76,6 @@
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="reviews.js"></script>
+<script src="feedback.js"></script>
 </body>
 </html>
-
